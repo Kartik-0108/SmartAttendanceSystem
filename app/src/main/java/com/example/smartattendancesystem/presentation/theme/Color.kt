@@ -1,4 +1,4 @@
-package com.example.smartattendancesystem.ui.theme
+package com.example.smartattendancesystem.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

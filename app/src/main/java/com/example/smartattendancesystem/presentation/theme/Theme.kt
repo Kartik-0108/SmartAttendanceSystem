@@ -1,6 +1,5 @@
-package com.example.smartattendancesystem.ui.theme
+package com.example.smartattendancesystem.presentation.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
