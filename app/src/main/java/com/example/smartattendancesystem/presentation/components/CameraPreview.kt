@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.presentation.components
 
+import com.example.smartattendancesystem.ml.facedetection.FaceDetectorHelper
 import android.annotation.SuppressLint
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -57,7 +58,8 @@ fun CameraPreview() {
 
                 imageAnalysis.setAnalyzer(
                     ContextCompat.getMainExecutor(ctx),
-                    FaceAnalyzer()
+                    FaceAnalyzer(FaceDetectorHelper(ctx)
+                    )
                 )
 
                 try {
