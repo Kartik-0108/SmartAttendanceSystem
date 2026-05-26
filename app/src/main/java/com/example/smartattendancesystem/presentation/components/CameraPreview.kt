@@ -1,5 +1,7 @@
 package com.example.smartattendancesystem.presentation.components
 
+import com.example.smartattendancesystem.ml.facemesh.FaceMeshAnalyzer
+import com.example.smartattendancesystem.ml.facemesh.FaceMeshHelper
 import com.example.smartattendancesystem.ml.facerecognition.FaceRecognitionHelper
 import android.annotation.SuppressLint
 import androidx.camera.core.*
@@ -74,7 +76,11 @@ fun CameraPreview() {
 
                             FaceDetectorHelper(ctx),
 
-                            FaceRecognitionHelper(ctx)
+                            FaceRecognitionHelper(ctx),
+
+                            FaceMeshAnalyzer(
+                                FaceMeshHelper(ctx)
+                            )
 
                         ) { detectedFaces ->
 

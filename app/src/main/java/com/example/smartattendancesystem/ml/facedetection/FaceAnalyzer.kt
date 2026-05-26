@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.ml.facedetection
 
+import com.example.smartattendancesystem.ml.facemesh.FaceMeshAnalyzer
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
@@ -14,6 +15,8 @@ import java.io.ByteArrayOutputStream
 class FaceAnalyzer(
     private val faceDetectorHelper: FaceDetectorHelper,
     private val faceRecognitionHelper: FaceRecognitionHelper,
+    private val faceMeshAnalyzer: FaceMeshAnalyzer,
+
     private val onFacesDetected:
         (List<FaceDetectionResult>) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -24,6 +27,8 @@ class FaceAnalyzer(
         val bitmap = imageProxyToBitmap(image)
 
         if (bitmap != null) {
+
+            faceMeshAnalyzer.analyze(bitmap)
 
             val faces =
                 faceDetectorHelper.detect(bitmap)
