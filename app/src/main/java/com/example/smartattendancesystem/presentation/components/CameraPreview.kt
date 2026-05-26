@@ -1,8 +1,7 @@
 package com.example.smartattendancesystem.presentation.components
 
 import android.annotation.SuppressLint
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.smartattendancesystem.ml.facedetection.FaceAnalyzer
 
 @SuppressLint("UnsafeOptInUsageError")
 @Composable
@@ -35,6 +35,7 @@ fun CameraPreview() {
                 val cameraProvider =
                     cameraProviderFuture.get()
 
+                // Preview Use Case
                 val preview =
                     Preview.Builder().build()
 
@@ -42,8 +43,22 @@ fun CameraPreview() {
                     previewView.surfaceProvider
                 )
 
+                // Camera Selector
                 val cameraSelector =
                     CameraSelector.DEFAULT_FRONT_CAMERA
+
+                // Image Analysis Use Case
+                val imageAnalysis =
+                    ImageAnalysis.Builder()
+                        .setBackpressureStrategy(
+                            ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
+                        )
+                        .build()
+
+                imageAnalysis.setAnalyzer(
+                    ContextCompat.getMainExecutor(ctx),
+                    FaceAnalyzer()
+                )
 
                 try {
 
@@ -52,7 +67,8 @@ fun CameraPreview() {
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
                         cameraSelector,
-                        preview
+                        preview,
+                        imageAnalysis
                     )
 
                 } catch (e: Exception) {
