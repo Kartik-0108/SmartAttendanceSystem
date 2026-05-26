@@ -13,5 +13,7 @@ data class AttendanceEntity(
 
     val studentName: String,
 
-    val timestamp: Long
+    val timestamp: Long,
+
+    val imagePath: String? = null
 )

@@ -14,5 +14,7 @@ data class StudentEntity(
 
     val rollNumber: String,
 
-    val embedding: FloatArray
+    val embedding: FloatArray,
+
+    val imagePath: String? = null
 )

@@ -1,6 +1,7 @@
 package com.example.smartattendancesystem.presentation.screens
 
 import androidx.compose.animation.*
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +29,7 @@ fun RegisterStudentScreen(
     var name by remember { mutableStateOf("") }
     var rollNumber by remember { mutableStateOf("") }
     var currentEmbedding by remember { mutableStateOf<FloatArray?>(null) }
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLive by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -60,7 +62,10 @@ fun RegisterStudentScreen(
             ) {
                 Box {
                     CameraPreview(
-                        onEmbeddingGenerated = { currentEmbedding = it },
+                        onEmbeddingGenerated = { embedding, bitmap -> 
+                            currentEmbedding = embedding
+                            currentBitmap = bitmap
+                        },
                         onLivenessDetected = { isLive = it }
                     )
                     
@@ -126,8 +131,10 @@ fun RegisterStudentScreen(
 
             Button(
                 onClick = {
-                    currentEmbedding?.let { 
-                        viewModel.registerStudent(name, rollNumber, it)
+                    val embedding = currentEmbedding
+                    val bitmap = currentBitmap
+                    if (embedding != null && bitmap != null) { 
+                        viewModel.registerStudent(name, rollNumber, embedding, bitmap)
                         navController.popBackStack()
                     }
                 },

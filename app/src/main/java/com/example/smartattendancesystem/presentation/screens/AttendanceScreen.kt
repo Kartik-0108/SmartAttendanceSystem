@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.presentation.screens
 
+import android.graphics.Bitmap
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ fun AttendanceScreen(
     val lastStudent by viewModel.lastDetectedStudent.collectAsState()
 
     var currentEmbedding by remember { mutableStateOf<FloatArray?>(null) }
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isLive by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -65,16 +67,19 @@ fun AttendanceScreen(
                     .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
             ) {
                 CameraPreview(
-                    onEmbeddingGenerated = { embedding ->
+                    onEmbeddingGenerated = { embedding, bitmap ->
                         currentEmbedding = embedding
+                        currentBitmap = bitmap
                         if (isLive) {
-                            viewModel.processFace(embedding, true)
+                            viewModel.processFace(embedding, bitmap, true)
                         }
                     },
                     onLivenessDetected = { live ->
                         isLive = live
-                        currentEmbedding?.let { 
-                            viewModel.processFace(it, live)
+                        val embedding = currentEmbedding
+                        val bitmap = currentBitmap
+                        if (live && embedding != null && bitmap != null) { 
+                            viewModel.processFace(embedding, bitmap, live)
                         }
                     }
                 )

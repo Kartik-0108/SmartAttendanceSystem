@@ -14,7 +14,7 @@ class FaceAnalyzer(
     private val faceRecognitionHelper: FaceRecognitionHelper,
     private val faceMeshAnalyzer: FaceMeshAnalyzer,
     private val onFacesDetected: (List<FaceDetectionResult>) -> Unit,
-    private val onEmbeddingGenerated: (FloatArray) -> Unit = {}
+    private val onEmbeddingGenerated: (FloatArray, Bitmap) -> Unit = { _, _ -> }
 ) : ImageAnalysis.Analyzer {
 
     private val isProcessingEmbedding = AtomicBoolean(false)
@@ -61,7 +61,7 @@ class FaceAnalyzer(
                             Thread {
                                 try {
                                     val embedding = faceRecognitionHelper.getFaceEmbedding(croppedFace)
-                                    onEmbeddingGenerated(embedding)
+                                    onEmbeddingGenerated(embedding, croppedFace)
                                     Log.d("FaceCapture", "Embedding Generated Successfully")
                                 } catch (e: Exception) {
                                     Log.e("FaceCapture", "Error: ${e.message}")

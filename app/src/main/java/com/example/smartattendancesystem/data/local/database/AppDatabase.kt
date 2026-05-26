@@ -15,7 +15,7 @@ import com.example.smartattendancesystem.data.local.entity.StudentEntity
         StudentEntity::class,
         AttendanceEntity::class
     ],
-    version = 1
+    version = 2
 )
 
 @TypeConverters(Converters::class)
@@ -46,7 +46,8 @@ abstract class AppDatabase :
                         context.applicationContext,
                         AppDatabase::class.java,
                         "attendance_database"
-                    ).build()
+                    ).fallbackToDestructiveMigration()
+                    .build()
 
                 INSTANCE = instance
 

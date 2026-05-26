@@ -1,6 +1,7 @@
 package com.example.smartattendancesystem.presentation.components
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -26,7 +27,7 @@ import com.example.smartattendancesystem.ml.facerecognition.FaceRecognitionHelpe
 @SuppressLint("UnsafeOptInUsageError")
 @Composable
 fun CameraPreview(
-    onEmbeddingGenerated: (FloatArray) -> Unit = {},
+    onEmbeddingGenerated: (FloatArray, Bitmap) -> Unit = { _, _ -> },
     onLivenessDetected: (Boolean) -> Unit = {}
 ) {
 
@@ -75,8 +76,8 @@ fun CameraPreview(
                             onFacesDetected = { detectedFaces ->
                                 faces = detectedFaces
                             },
-                            onEmbeddingGenerated = { embedding ->
-                                onEmbeddingGenerated(embedding)
+                            onEmbeddingGenerated = { embedding, bitmap ->
+                                onEmbeddingGenerated(embedding, bitmap)
                             }
                         )
                     )

@@ -167,6 +167,9 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.gson)
 
+    // COIL
+    implementation(libs.coil.compose)
+
     // TESTING
     testImplementation(
         libs.junit

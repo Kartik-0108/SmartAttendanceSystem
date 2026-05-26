@@ -1,12 +1,14 @@
 package com.example.smartattendancesystem.presentation.viewmodel
 
 import android.app.Application
+import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartattendancesystem.data.local.database.AppDatabase
 import com.example.smartattendancesystem.data.local.entity.AttendanceEntity
 import com.example.smartattendancesystem.data.local.entity.StudentEntity
 import com.example.smartattendancesystem.data.repository.AttendanceRepository
+import com.example.smartattendancesystem.utils.ImageUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +34,7 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
 
     private var isProcessing = false
 
-    fun processFace(embedding: FloatArray, isLive: Boolean) {
+    fun processFace(embedding: FloatArray, bitmap: Bitmap, isLive: Boolean) {
         if (isProcessing) return
 
         viewModelScope.launch {
@@ -49,12 +51,19 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
                 _lastDetectedStudent.value = student
                 _attendanceStatus.value = "Hello ${student.name}! Marking attendance..."
                 
+                val imagePath = ImageUtils.saveBitmapToInternalStorage(
+                    getApplication(), 
+                    bitmap, 
+                    "attendance_pics"
+                )
+
                 // Record attendance
                 repository.markAttendance(
                     AttendanceEntity(
                         studentId = student.id,
                         studentName = student.name,
-                        timestamp = System.currentTimeMillis()
+                        timestamp = System.currentTimeMillis(),
+                        imagePath = imagePath
                     )
                 )
                 
@@ -70,13 +79,20 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun registerStudent(name: String, rollNumber: String, embedding: FloatArray) {
+    fun registerStudent(name: String, rollNumber: String, embedding: FloatArray, bitmap: Bitmap) {
         viewModelScope.launch {
+            val imagePath = ImageUtils.saveBitmapToInternalStorage(
+                getApplication(), 
+                bitmap, 
+                "student_pics"
+            )
+
             repository.insertStudent(
                 StudentEntity(
                     name = name,
                     rollNumber = rollNumber,
-                    embedding = embedding
+                    embedding = embedding,
+                    imagePath = imagePath
                 )
             )
             _attendanceStatus.value = "Student $name Registered Successfully!"
