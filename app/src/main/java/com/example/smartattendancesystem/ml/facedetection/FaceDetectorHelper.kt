@@ -35,7 +35,7 @@ class FaceDetectorHelper(context: Context) {
             )
     }
 
-    fun detect(bitmap: Bitmap) {
+    fun detect(bitmap: Bitmap): List<FaceDetectionResult> {
 
         val mpImage =
             BitmapImageBuilder(bitmap).build()
@@ -43,9 +43,28 @@ class FaceDetectorHelper(context: Context) {
         val result =
             faceDetector.detect(mpImage)
 
+        val detections = mutableListOf<FaceDetectionResult>()
+
+        for (detection in result.detections()) {
+
+            val box = detection.boundingBox()
+
+            detections.add(
+
+                FaceDetectionResult(
+                    left = box.left,
+                    top = box.top,
+                    right = box.right,
+                    bottom = box.bottom
+                )
+            )
+        }
+
         Log.d(
             "FaceDetection",
-            "Faces Detected: ${result.detections().size}"
+            "Faces Detected: ${detections.size}"
         )
+
+        return detections
     }
 }

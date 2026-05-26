@@ -7,11 +7,12 @@ import android.graphics.Rect
 import android.graphics.YuvImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.compose.ui.platform.LocalContext
 import java.io.ByteArrayOutputStream
 
 class FaceAnalyzer(
-    private val faceDetectorHelper: FaceDetectorHelper
+    private val faceDetectorHelper: FaceDetectorHelper,
+    private val onFacesDetected:
+        (List<FaceDetectionResult>) -> Unit
 ) : ImageAnalysis.Analyzer {
 
     @SuppressLint("UnsafeOptInUsageError")
@@ -21,7 +22,11 @@ class FaceAnalyzer(
             imageProxyToBitmap(image)
 
         if (bitmap != null) {
-            faceDetectorHelper.detect(bitmap)
+
+            val faces =
+                faceDetectorHelper.detect(bitmap)
+
+            onFacesDetected(faces)
         }
 
         image.close()
