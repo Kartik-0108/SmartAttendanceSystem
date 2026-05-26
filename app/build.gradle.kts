@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("com.google.mediapipe:tasks-vision:0.10.14")
     implementation("androidx.camera:camera-core:1.3.3")
     implementation("androidx.camera:camera-camera2:1.3.3")

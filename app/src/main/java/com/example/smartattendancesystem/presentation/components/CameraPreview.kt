@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.presentation.components
 
+import com.example.smartattendancesystem.ml.facerecognition.FaceRecognitionHelper
 import android.annotation.SuppressLint
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -70,7 +71,11 @@ fun CameraPreview() {
                         ContextCompat.getMainExecutor(ctx),
 
                         FaceAnalyzer(
-                            FaceDetectorHelper(ctx)
+
+                            FaceDetectorHelper(ctx),
+
+                            FaceRecognitionHelper(ctx)
+
                         ) { detectedFaces ->
 
                             faces = detectedFaces
