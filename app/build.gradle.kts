@@ -40,6 +40,12 @@ android {
 }
 
 dependencies {
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.3")
+    implementation("androidx.camera:camera-camera2:1.3.3")
+    implementation("androidx.camera:camera-lifecycle:1.3.3")
+    implementation("androidx.camera:camera-view:1.3.3")
+    implementation("androidx.camera:camera-extensions:1.3.3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
