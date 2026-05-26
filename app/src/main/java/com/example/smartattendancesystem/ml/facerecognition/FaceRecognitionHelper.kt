@@ -15,139 +15,51 @@ class FaceRecognitionHelper(
 ) {
 
     private var interpreter: Interpreter
+    private val INPUT_SIZE = 160
+    private var outputSize: Int = 512
 
     init {
-
-        interpreter =
-            Interpreter(
-                loadModelFile(
-                    context,
-                    "mobile_face_net.tflite"
-                )
-            )
-
-        Log.d(
-            "FaceNet",
-            "Model Loaded Successfully"
+        interpreter = Interpreter(
+            loadModelFile(context, "mobile_face_net.tflite")
         )
+        
+        // Dynamically get the output size from the model
+        val outputShape = interpreter.getOutputTensor(0).shape()
+        outputSize = outputShape[outputShape.size - 1]
+        
+        Log.d("FaceNet", "Model Loaded. Input: ${INPUT_SIZE}x${INPUT_SIZE}, Output: $outputSize")
     }
 
-    private fun loadModelFile(
-        context: Context,
-        modelName: String
-    ): MappedByteBuffer {
-
-        val fileDescriptor =
-            context.assets.openFd(modelName)
-
-        val inputStream =
-            FileInputStream(
-                fileDescriptor.fileDescriptor
-            )
-
-        val fileChannel =
-            inputStream.channel
-
-        val startOffset =
-            fileDescriptor.startOffset
-
-        val declaredLength =
-            fileDescriptor.declaredLength
-
-        return fileChannel.map(
-            FileChannel.MapMode.READ_ONLY,
-            startOffset,
-            declaredLength
-        )
+    private fun loadModelFile(context: Context, modelName: String): MappedByteBuffer {
+        val fileDescriptor = context.assets.openFd(modelName)
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val fileChannel = inputStream.channel
+        val startOffset = fileDescriptor.startOffset
+        val declaredLength = fileDescriptor.declaredLength
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
     }
 
-    fun getFaceEmbedding(
-        bitmap: Bitmap
-    ): FloatArray {
+    fun getFaceEmbedding(bitmap: Bitmap): FloatArray {
+        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true)
+        val inputBuffer = convertBitmapToBuffer(resizedBitmap)
 
-        val resizedBitmap =
-            Bitmap.createScaledBitmap(
-                bitmap,
-                112,
-                112,
-                true
-            )
-
-        val inputBuffer =
-            convertBitmapToBuffer(
-                resizedBitmap
-            )
-
-        val output =
-            Array(1) {
-                FloatArray(192)
-            }
-
-        Log.d(
-            "FaceNet",
-            "Running inference..."
-        )
-
-        interpreter.run(
-            inputBuffer,
-            output
-        )
-
-        Log.d(
-            "FaceNet",
-            "Inference completed"
-        )
+        val output = Array(1) { FloatArray(outputSize) }
+        interpreter.run(inputBuffer, output)
 
         return output[0]
     }
 
-    private fun convertBitmapToBuffer(
-        bitmap: Bitmap
-    ): ByteBuffer {
+    private fun convertBitmapToBuffer(bitmap: Bitmap): ByteBuffer {
+        val buffer = ByteBuffer.allocateDirect(1 * INPUT_SIZE * INPUT_SIZE * 3 * 4)
+        buffer.order(ByteOrder.nativeOrder())
 
-        val buffer =
-            ByteBuffer.allocateDirect(
-                1 * 112 * 112 * 3 * 4
-            )
+        val pixels = IntArray(INPUT_SIZE * INPUT_SIZE)
+        bitmap.getPixels(pixels, 0, INPUT_SIZE, 0, 0, INPUT_SIZE, INPUT_SIZE)
 
-        buffer.order(
-            ByteOrder.nativeOrder()
-        )
-
-        val pixels =
-            IntArray(112 * 112)
-
-        bitmap.getPixels(
-            pixels,
-            0,
-            112,
-            0,
-            0,
-            112,
-            112
-        )
-
-        var pixelIndex = 0
-
-        for (i in 0 until 112) {
-
-            for (j in 0 until 112) {
-
-                val pixel =
-                    pixels[pixelIndex++]
-
-                buffer.putFloat(
-                    ((pixel shr 16 and 0xFF) - 128f) / 128f
-                )
-
-                buffer.putFloat(
-                    ((pixel shr 8 and 0xFF) - 128f) / 128f
-                )
-
-                buffer.putFloat(
-                    ((pixel and 0xFF) - 128f) / 128f
-                )
-            }
+        for (pixel in pixels) {
+            buffer.putFloat(((pixel shr 16 and 0xFF) - 128f) / 128f)
+            buffer.putFloat(((pixel shr 8 and 0xFF) - 128f) / 128f)
+            buffer.putFloat(((pixel and 0xFF) - 128f) / 128f)
         }
 
         return buffer

@@ -4,7 +4,8 @@ import android.graphics.Bitmap
 import android.util.Log
 
 class FaceMeshAnalyzer(
-    private val faceMeshHelper: FaceMeshHelper
+    private val faceMeshHelper: FaceMeshHelper,
+    private val onLivenessDetected: (Boolean) -> Unit
 ) {
 
     private val blinkDetector =
@@ -47,6 +48,8 @@ class FaceMeshAnalyzer(
                         "Liveness",
                         "REAL PERSON DETECTED"
                     )
+
+                    onLivenessDetected(true)
                 }
 
             } else {
