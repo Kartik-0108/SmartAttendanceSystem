@@ -5,12 +5,10 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.smartattendancesystem.presentation.components.CameraPreview
 import com.example.smartattendancesystem.presentation.viewmodel.AttendanceViewModel
 
@@ -42,18 +42,20 @@ fun AttendanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Face Attendance", fontWeight = FontWeight.Bold) },
+                title = { Text("Scanner", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color.Black // Dark background for camera feel
+        containerColor = Color.Black
     ) { padding ->
         Box(
             modifier = Modifier
@@ -64,7 +66,8 @@ fun AttendanceScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+                    .padding(bottom = 120.dp)
+                    .clip(RoundedCornerShape(32.dp))
             ) {
                 CameraPreview(
                     onEmbeddingGenerated = { embedding, bitmap ->
@@ -85,83 +88,132 @@ fun AttendanceScreen(
                 )
                 
                 // Scanning Line Animation
-                ScanningOverlay()
+                if (status == "Scan Face to Start" || status == "Ready for next student" || status.contains("Not Recognized")) {
+                    ScanningOverlay()
+                }
+
+                // Liveness Badge (Inside Camera View)
+                Surface(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .align(Alignment.TopEnd),
+                    color = if (isLive) Color(0xFF4CAF50).copy(alpha = 0.8f) else Color.Red.copy(alpha = 0.8f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(Color.White, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isLive) "LIVE" else "BLINK",
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
-            // Status Card (Bottom)
+            // Status Panel (Bottom)
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(24.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    .padding(16.dp),
+                shape = RoundedCornerShape(32.dp),
+                color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        val statusIcon = when {
-                            status.contains("Marked") -> Icons.Default.CheckCircle
-                            status.contains("Failed") -> Icons.Default.Error
-                            else -> Icons.Default.Info
-                        }
-                        val statusColor = when {
-                            status.contains("Marked") -> Color(0xFF4CAF50)
-                            status.contains("Failed") -> Color(0xFFF44336)
-                            else -> MaterialTheme.colorScheme.primary
-                        }
-
-                        Icon(
-                            imageVector = statusIcon,
-                            contentDescription = null,
-                            tint = statusColor,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    
-                    lastStudent?.let { student ->
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = student.name,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    text = "|",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = student.rollNumber,
-                                    fontSize = 14.sp
-                                )
-                            }
+                    // Recognition Result Card
+                    AnimatedContent(
+                        targetState = lastStudent,
+                        transitionSpec = {
+                            fadeIn() + slideInVertically() togetherWith fadeOut() + slideOutVertically()
+                        },
+                        label = "StudentStatus"
+                    ) { student ->
+                        if (student != null && status.contains("Marked")) {
+                            SuccessStudentView(student)
+                        } else {
+                            ScanningStatusView(status)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SuccessStudentView(student: com.example.smartattendancesystem.data.local.entity.StudentEntity) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            modifier = Modifier.size(64.dp),
+            shape = CircleShape,
+            border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF4CAF50))
+        ) {
+            AsyncImage(
+                model = student.imagePath,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                "Welcome, ${student.name}!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF4CAF50)
+            )
+            Text(
+                "Attendance recorded successfully",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ScanningStatusView(status: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        val color = when {
+            status.contains("Failed") -> MaterialTheme.colorScheme.error
+            status.contains("Recognized") -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.primary
+        }
+        
+        CircularProgressIndicator(
+            modifier = Modifier.size(24.dp),
+            strokeWidth = 3.dp,
+            color = color
+        )
+        
+        Text(
+            text = status,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
     }
 }
 
@@ -183,26 +235,17 @@ fun ScanningOverlay() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(2.dp)
+                .height(4.dp)
                 .offset(y = height * offsetY)
                 .background(
-                    brush = Brush.horizontalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Green.copy(alpha = 0.8f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                             Color.Transparent
                         )
                     )
                 )
         )
-        
-        // Corner Brackets
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(40.dp)
-        ) {
-            // We can add custom drawing here for corner brackets if needed
-        }
     }
 }

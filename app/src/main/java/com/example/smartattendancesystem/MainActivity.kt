@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.smartattendancesystem.presentation.navigation.AppNavigation
+import com.example.smartattendancesystem.presentation.theme.FaceTrackTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -29,7 +30,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            AppNavigation()
+            FaceTrackTheme {
+                AppNavigation()
+            }
         }
     }
 }

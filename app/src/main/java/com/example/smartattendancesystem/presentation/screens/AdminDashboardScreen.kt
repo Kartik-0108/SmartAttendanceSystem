@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -44,18 +45,20 @@ fun AdminDashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admin Console", fontWeight = FontWeight.Bold) },
+                title = { 
+                    Column {
+                        Text("Management", fontWeight = FontWeight.Bold)
+                        Text("Student database & records", style = MaterialTheme.typography.labelSmall)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.loadStudents() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                    }
                     IconButton(onClick = { showDeleteAllDialog = true }) {
-                        Icon(Icons.Default.DeleteSweep, contentDescription = "Clear Records", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.DeleteSweep, contentDescription = "Clear", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -65,70 +68,69 @@ fun AdminDashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp)
         ) {
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Statistics Section
+            // Stats Row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                StatCard(
+                AdminStatCard(
                     title = "Students",
                     value = totalStudents.toString(),
-                    icon = Icons.Default.Group,
-                    color = MaterialTheme.colorScheme.primary,
+                    icon = Icons.Default.People,
                     modifier = Modifier.weight(1f)
                 )
-                StatCard(
-                    title = "Total Records",
+                AdminStatCard(
+                    title = "Records",
                     value = totalAttendance.toString(),
-                    icon = Icons.Default.Inventory,
-                    color = MaterialTheme.colorScheme.secondary,
+                    icon = Icons.Default.Description,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            // Search and List Section
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        "Registered Students",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-            Text(
-                text = "Manage Students",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { 
+                            searchQuery = it
+                            viewModel.searchStudents(it)
+                        },
+                        placeholder = { Text("Search by name or roll...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
+                        ),
+                        singleLine = true
+                    )
 
-            // Search Bar
-            AdminSearchBar(
-                query = searchQuery,
-                onQueryChange = { 
-                    searchQuery = it
-                    viewModel.searchStudents(it)
-                }
-            )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Student List
-            if (students.isEmpty() && searchQuery.isEmpty()) {
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("No students registered", color = MaterialTheme.colorScheme.outline)
-                }
-            } else if (students.isEmpty()) {
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("No results for '$searchQuery'", color = MaterialTheme.colorScheme.outline)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp)
-                ) {
-                    items(students) { student ->
-                        ModernStudentItem(student) {
-                            viewModel.deleteStudent(student.id)
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp)
+                    ) {
+                        items(students) { student ->
+                            AdminStudentCard(student) {
+                                viewModel.deleteStudent(student.id)
+                            }
                         }
                     }
                 }
@@ -139,17 +141,14 @@ fun AdminDashboardScreen(
     if (showDeleteAllDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteAllDialog = false },
-            title = { Text("Clear All Attendance?") },
-            text = { Text("This will delete all attendance records from the database. This action cannot be undone.") },
+            title = { Text("Confirm Wipe?") },
+            text = { Text("Are you sure you want to delete all attendance records? This will not remove students.") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteAllAttendance()
-                        showDeleteAllDialog = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Clear All")
+                TextButton(onClick = {
+                    viewModel.deleteAllAttendance()
+                    showDeleteAllDialog = false
+                }) {
+                    Text("Delete All", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -162,130 +161,54 @@ fun AdminDashboardScreen(
 }
 
 @Composable
-fun StatCard(
-    title: String,
-    value: String,
-    icon: ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
+fun AdminStatCard(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(24.dp)
-            )
+        Column(modifier = Modifier.padding(20.dp)) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                color = color.copy(alpha = 0.7f)
-            )
+            Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+            Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
         }
     }
 }
 
 @Composable
-fun AdminSearchBar(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = { Text("Search by name or roll...") },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-        ),
-        singleLine = true,
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Clear, contentDescription = "Clear")
-                }
-            }
-        }
-    )
-}
-
-@Composable
-fun ModernStudentItem(student: StudentEntity, onDelete: () -> Unit) {
+fun AdminStudentCard(student: StudentEntity, onDelete: () -> Unit) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+            AsyncImage(
+                model = student.imagePath,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(50.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                if (student.imagePath != null) {
-                    AsyncImage(
-                        model = student.imagePath,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+            )
             
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    student.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "Roll: ${student.rollNumber}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(student.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Roll: ${student.rollNumber}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             
             IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(
-                    Icons.Default.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
-                )
+                Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -293,17 +216,14 @@ fun ModernStudentItem(student: StudentEntity, onDelete: () -> Unit) {
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete Student?") },
-            text = { Text("This will permanently remove ${student.name} and their face data from the database.") },
+            title = { Text("Remove Student?") },
+            text = { Text("Delete ${student.name} from the system?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteConfirm = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
+                TextButton(onClick = {
+                    onDelete()
+                    showDeleteConfirm = false
+                }) {
+                    Text("Remove", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {

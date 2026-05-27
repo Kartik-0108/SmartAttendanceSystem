@@ -33,49 +33,65 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private var isProcessing = false
+    private var lastMarkedStudentId: Int? = null
+    private var lastMarkedTime: Long = 0
 
     fun processFace(embedding: FloatArray, bitmap: Bitmap, isLive: Boolean) {
         if (isProcessing) return
 
         viewModelScope.launch {
             isProcessing = true
-            
-            if (!isLive) {
-                _attendanceStatus.value = "Liveness Check Failed! Please Blink."
-                isProcessing = false
-                return@launch
-            }
+            try {
+                if (!isLive) {
+                    _attendanceStatus.value = "Liveness Check Failed! Please Blink."
+                    return@launch
+                }
 
-            val student = repository.findStudentByEmbedding(embedding)
-            if (student != null) {
-                _lastDetectedStudent.value = student
-                _attendanceStatus.value = "Hello ${student.name}! Marking attendance..."
-                
-                val imagePath = ImageUtils.saveBitmapToInternalStorage(
-                    getApplication(), 
-                    bitmap, 
-                    "attendance_pics"
-                )
+                val student = repository.findStudentByEmbedding(embedding)
+                if (student != null) {
+                    // Prevent marking the same student again within 1 minute
+                    val currentTime = System.currentTimeMillis()
+                    if (student.id == lastMarkedStudentId && (currentTime - lastMarkedTime) < 60000) {
+                        _attendanceStatus.value = "Attendance already marked for ${student.name}"
+                        return@launch
+                    }
 
-                // Record attendance
-                repository.markAttendance(
-                    AttendanceEntity(
-                        studentId = student.id,
-                        studentName = student.name,
-                        timestamp = System.currentTimeMillis(),
-                        imagePath = imagePath
+                    _lastDetectedStudent.value = student
+                    _attendanceStatus.value = "Hello ${student.name}! Marking attendance..."
+                    
+                    val imagePath = ImageUtils.saveBitmapToInternalStorage(
+                        getApplication(), 
+                        bitmap, 
+                        "attendance_pics"
                     )
-                )
-                
-                _attendanceStatus.value = "Attendance Marked for ${student.name}!"
-                // Add a delay so the message can be read
-                kotlinx.coroutines.delay(3000)
-                _attendanceStatus.value = "Ready for next student"
-            } else {
-                _attendanceStatus.value = "Student Not Recognized"
+
+                    // Record attendance
+                    repository.markAttendance(
+                        AttendanceEntity(
+                            studentId = student.id,
+                            studentName = student.name,
+                            timestamp = currentTime,
+                            imagePath = imagePath
+                        )
+                    )
+                    
+                    lastMarkedStudentId = student.id
+                    lastMarkedTime = currentTime
+                    
+                    _attendanceStatus.value = "Attendance Marked for ${student.name}!"
+                    // Keep the success message visible
+                    kotlinx.coroutines.delay(4000)
+                    _attendanceStatus.value = "Ready for next student"
+                } else {
+                    _attendanceStatus.value = "Student Not Recognized"
+                    kotlinx.coroutines.delay(2000)
+                    _attendanceStatus.value = "Ready for next student"
+                }
+            } catch (e: Exception) {
+                _attendanceStatus.value = "Error: ${e.message}"
+            } finally {
+                isProcessing = false
             }
-            
-            isProcessing = false
         }
     }
 
