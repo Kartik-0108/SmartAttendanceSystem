@@ -9,6 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,7 +26,20 @@ import com.example.smartattendancesystem.presentation.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    authViewModel: com.example.smartattendancesystem.presentation.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val authState by authViewModel.authState.collectAsState()
+    
+    LaunchedEffect(authState) {
+        if (!authState) {
+            navController.navigate("login") {
+                popUpTo("home") { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -38,7 +54,12 @@ fun HomeScreen(navController: NavController) {
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { authViewModel.logout() }) {
+                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                    }
+                }
             )
         }
     ) { padding ->

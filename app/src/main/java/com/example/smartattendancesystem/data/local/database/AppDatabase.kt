@@ -15,7 +15,7 @@ import com.example.smartattendancesystem.data.local.entity.StudentEntity
         StudentEntity::class,
         AttendanceEntity::class
     ],
-    version = 2
+    version = 3
 )
 
 @TypeConverters(Converters::class)

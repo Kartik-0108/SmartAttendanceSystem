@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "887979340983",
+    "project_id": "facetrack-654b7",
+    "storage_bucket": "facetrack-654b7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887979340983:android:4542345964975074c20932",
+        "android_client_info": {
+          "package_name": "com.example.smartattendancesystem"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-tyMHHNrQgcCgL7jRLbLoYnO3p780cws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

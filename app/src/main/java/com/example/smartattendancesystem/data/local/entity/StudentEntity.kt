@@ -16,5 +16,7 @@ data class StudentEntity(
 
     val embedding: FloatArray,
 
-    val imagePath: String? = null
+    val imagePath: String? = null,
+
+    val isSynced: Boolean = false
 )

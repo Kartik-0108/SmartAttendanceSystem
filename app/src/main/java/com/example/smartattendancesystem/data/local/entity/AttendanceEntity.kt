@@ -15,5 +15,7 @@ data class AttendanceEntity(
 
     val timestamp: Long,
 
-    val imagePath: String? = null
+    val imagePath: String? = null,
+
+    val isSynced: Boolean = false
 )

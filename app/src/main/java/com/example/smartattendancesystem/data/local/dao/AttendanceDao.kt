@@ -25,4 +25,10 @@ interface AttendanceDao {
 
     @Query("DELETE FROM attendance")
     suspend fun deleteAllAttendance()
+
+    @Query("SELECT * FROM attendance WHERE isSynced = 0")
+    suspend fun getUnsyncedAttendance(): List<AttendanceEntity>
+
+    @Query("UPDATE attendance SET isSynced = 1 WHERE id = :id")
+    suspend fun markSynced(id: Int)
 }

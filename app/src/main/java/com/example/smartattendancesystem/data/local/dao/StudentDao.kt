@@ -23,4 +23,10 @@ interface StudentDao {
 
     @Query("DELETE FROM students WHERE id = :studentId")
     suspend fun deleteStudent(studentId: Int)
+
+    @Query("SELECT * FROM students WHERE isSynced = 0")
+    suspend fun getUnsyncedStudents(): List<StudentEntity>
+
+    @Query("UPDATE students SET isSynced = 1 WHERE id = :id")
+    suspend fun markSynced(id: Int)
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartattendancesystem.data.local.database.AppDatabase
 import com.example.smartattendancesystem.data.local.entity.AttendanceEntity
+import com.example.smartattendancesystem.data.remote.firebase.FirebaseManager
 import com.example.smartattendancesystem.data.repository.AttendanceRepository
+import com.example.smartattendancesystem.data.repository.SyncRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +17,7 @@ import java.util.*
 class ReportsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: AttendanceRepository
+    private val syncRepository: SyncRepository
 
     private val _allAttendance = MutableStateFlow<List<AttendanceEntity>>(emptyList())
     val allAttendance: StateFlow<List<AttendanceEntity>> = _allAttendance.asStateFlow()
@@ -24,6 +27,11 @@ class ReportsViewModel(application: Application) : AndroidViewModel(application)
         repository = AttendanceRepository(
             database.studentDao(),
             database.attendanceDao()
+        )
+        syncRepository = SyncRepository(
+            database.studentDao(),
+            database.attendanceDao(),
+            FirebaseManager()
         )
         loadAttendance()
     }
@@ -75,7 +83,8 @@ class ReportsViewModel(application: Application) : AndroidViewModel(application)
 
     fun syncData() {
         viewModelScope.launch {
-            repository.syncWithBackend()
+            syncRepository.syncEverything()
+            loadAttendance()
         }
     }
 }
