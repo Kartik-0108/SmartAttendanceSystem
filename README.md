@@ -76,18 +76,6 @@ Camera Stream (CameraX)
 
 ---
 
-## 📈 Project Status
-
-- [x] Phase 1 — Project Rebranding & UI Overhaul
-- [x] Phase 2 — TFLite Recognition Pipeline
-- [x] Phase 3 — Anti-Spoofing (Blink Detection)
-- [x] Phase 4 — PDF Export Utility
-- [x] Phase 5 — Firebase Auth & Firestore Sync
-- [ ] Phase 6 — Performance Optimization (GPU Delegate)
-- [ ] Phase 7 — Advanced Analytics Dashboard
-
----
-
 ## ✍️ Author
 
 **Kartik Devadiga**  
