@@ -1,170 +1,100 @@
-# Smart Attendance System
+# FaceTrack 🚀
 
-AI-powered Android Attendance System using Face Recognition, Anti-Spoofing Detection, and Real-Time ML Processing.
-
----
-
-# Features
-
-## Student Registration
-- Register students with:
-    - Name
-    - Roll Number
-    - Department/Class
-- Capture multiple face images
-- Store face embeddings
-
-## Smart Attendance
-- Real-time face detection
-- Automatic attendance marking
-- Date & time logging
-- Live camera processing
-
-## Anti-Spoofing Security
-- Blink detection
-- Head movement verification
-- Photo attack prevention
-- Video replay attack prevention
-- Liveness verification
-
-## Reports & Analytics
-- Daily attendance report
-- Weekly attendance report
-- Monthly attendance percentage
-- CSV export
-- PDF export
-- Attendance analytics dashboard
-
-## Admin Dashboard
-- Search students
-- View attendance records
-- Export reports
-- Attendance statistics
+**FaceTrack** is a production-grade, AI-powered attendance management system built for Android. It leverages on-device Machine Learning for real-time face recognition and liveness detection, ensuring high security and privacy with a modern, offline-first architecture.
 
 ---
 
-# Tech Stack
+## ✨ Key Features
 
-## Android Development
-- Kotlin
-- Jetpack Compose
-- CameraX
-- MVVM Architecture
-- Material 3
+### 🔐 Secure Staff Access
+- **Firebase Authentication**: Secure login and registration for authorized staff.
+- **Google Sign-In**: (Optional/Scalable) Seamless entry for organizational accounts.
 
-## Machine Learning
-- TensorFlow Lite
-- MediaPipe Face Detection
-- MediaPipe Face Mesh
-- MobileFaceNet
-- On-device ML Inference
+### 👤 Student Management & Registration
+- **Face Fingerprinting**: Converts student faces into 128-dimension mathematical embeddings (vectors) using **MobileFaceNet**.
+- **On-Device Storage**: Biometric data remains on the device, ensuring user privacy.
+- **Profile Capture**: Saves a master cropped face photo for visual verification.
 
-## Backend
-- FastAPI
-- PostgreSQL
-- REST API
+### 📸 Smart Attendance (Real-Time)
+- **Face Recognition**: Real-time vector matching using **Cosine Similarity** (Threshold > 0.8).
+- **Liveness Verification (Anti-Spoofing)**: Uses **MediaPipe** to track Eye Aspect Ratio (EAR) and detect blinks, preventing photo/video spoofing attacks.
+- **Attendance Cooldown**: Smart logic to prevent multiple entries for the same person within a session.
 
----
-
-# Current Progress
-
-## Completed
-
-- [x] Phase 1 — Project Setup
-- [x] Phase 2 — Android UI System
-- [x] Phase 3 — CameraX Integration
-- [x] Phase 4 — Real-Time Face Detection
-
-## Upcoming
-
-- [ ] Phase 5 — Face Recognition
-- [ ] Phase 6 — Anti-Spoofing Detection
-- [ ] Phase 7 — Backend Integration
-- [ ] Phase 8 — Attendance Logic
-- [ ] Phase 9 — Reports System
-- [ ] Phase 10 — Deployment & Optimization
+### 📊 Reporting & Analytics
+- **Visual History**: Every attendance record includes the live face captured during scanning.
+- **PDF Export**: Generate professional attendance reports directly from the app.
+- **Cloud Sync**: Offline-first architecture using **Room + Firestore**. Data syncs automatically when the internet is available.
 
 ---
 
-# Current Working Features
+## 🛠 Tech Stack
 
-- Real-time camera preview
-- Front camera support
-- Live frame analysis
-- MediaPipe face detection
-- Real-time face count detection
-- ML processing pipeline
+- **Language**: Kotlin
+- **UI Framework**: Jetpack Compose (Material 3)
+- **Architecture**: MVVM (Model-View-ViewModel) + Repository Pattern
+- **AI/ML Engine**: 
+    - **MediaPipe**: Face Detection & Landmark Tracking
+    - **TensorFlow Lite**: MobileFaceNet Inference
+- **Database**: 
+    - **Room**: Local Source of Truth
+    - **Firebase Firestore**: Cloud Synchronization
+- **Camera**: CameraX (Analysis API)
+- **Image Loading**: Coil (Coroutines Image Loader)
 
 ---
 
-# Project Architecture
+## 🏗 Architecture Overview
 
 ```text
-CameraX
-   ↓
-Frame Analyzer
-   ↓
-MediaPipe Face Detection
-   ↓
-Face Recognition
-   ↓
-Anti-Spoofing Verification
-   ↓
-Attendance System
+Camera Stream (CameraX)
+       ↓
+    Frame Analyzer (Atomic Lock)
+       ↓
+    MediaPipe Landmark Mesh ──→ [Liveness Check (Blink EAR)]
+       ↓
+    TFLite Embedding Generator (MobileFaceNet)
+       ↓
+    Cosine Similarity Matcher (Room Database Search)
+       ↓
+    Success Handler (Save Record + Push to Firestore)
 ```
 
 ---
 
-# Folder Structure
+## 🚀 Getting Started
 
-```text
-app/
- ├── data/
- │   ├── local/
- │   ├── remote/
- │   └── repository/
- │
- ├── domain/
- │   ├── model/
- │   ├── repository/
- │   └── usecase/
- │
- ├── presentation/
- │   ├── screens/
- │   ├── navigation/
- │   ├── components/
- │   ├── viewmodel/
- │   └── theme/
- │
- ├── ml/
- │   ├── facedetection/
- │   ├── facerecognition/
- │   └── antispoof/
- │
- └── utils/
-```
+### Prerequisites
+- Android Studio Ladybug or newer
+- Min SDK 26 (Android 8.0)
+- Firebase Project setup
+
+### Installation
+1. Clone the repository.
+2. Place your `google-services.json` in the `app/` folder.
+3. Sync the project with Gradle.
+4. Run on a physical Android device (for camera and ML performance).
 
 ---
 
-# Future Improvements
+## 📈 Project Status
 
-- Cloud synchronization
-- Multi-face attendance
-- Face recognition optimization
-- Offline attendance mode
-- Admin web panel
-- AI attendance analytics
-
----
-
-# Author
-
-## Kartik Devadiga
-
-Android Developer | AI Enthusiast | Full Stack Learner
+- [x] Phase 1 — Project Rebranding & UI Overhaul
+- [x] Phase 2 — TFLite Recognition Pipeline
+- [x] Phase 3 — Anti-Spoofing (Blink Detection)
+- [x] Phase 4 — PDF Export Utility
+- [x] Phase 5 — Firebase Auth & Firestore Sync
+- [ ] Phase 6 — Performance Optimization (GPU Delegate)
+- [ ] Phase 7 — Advanced Analytics Dashboard
 
 ---
 
-# License
+## ✍️ Author
 
-This project is developed for educational, research, and portfolio purposes.
+**Kartik Devadiga**  
+*Android Developer | AI & ML Enthusiast*
+
+---
+
+## 📜 License
+
+This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
